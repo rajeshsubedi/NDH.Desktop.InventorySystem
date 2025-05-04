@@ -17,7 +17,7 @@ namespace InventoryManagementSystemUI
         {
             RegisterAllServices();
             base.OnStartup(e);
-            var loginWindow = new LoginDashboard();
+            var loginWindow = ServiceProvider.GetRequiredService<LoginDashboard>();
             loginWindow.Show();
         }
 
@@ -26,13 +26,6 @@ namespace InventoryManagementSystemUI
             var services = new ServiceCollection();
             // Register services
             services.RegisterServices();
-
-            // Add configuration if needed
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(AppContext.BaseDirectory)
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .Build();
-            services.AddSingleton<IConfiguration>(configuration);
 
             ServiceProvider = services.BuildServiceProvider();
         }

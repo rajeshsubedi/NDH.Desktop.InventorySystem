@@ -1,13 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using InventoryAppDataAccessLayer.Data;
 using InventoryAppDataAccessLayer.Repositories.RepoImplementations;
 using InventoryAppDataAccessLayer.Repositories.RepoInterfaces;
 using InventoryAppServicesLayer.AuthorizationFilter;
 using InventoryAppServicesLayer.ServiceImplementations;
 using InventoryAppServicesLayer.ServiceInterfaces;
+using InventoryManagementSystemUI.Login;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace InventoryManagementSystemUI
@@ -20,10 +25,22 @@ namespace InventoryManagementSystemUI
             services.AddScoped<IUserAuthenticationService, UserAuthenticationService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddSingleton<ILoggerConfigurator, LoggerConfigurator>();
-
-
             // Singleton if needed
             services.AddSingleton<JwtAuthorizationFilter>();
+
+            // Register the LoginDashboard window
+            services.AddSingleton<LoginDashboard>();
+
+            // Add db configuration 
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(AppContext.BaseDirectory)
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .Build();
+            services.AddSingleton<IConfiguration>(configuration);
+            services.AddDbContext<InventoryServiceDbContext>(options =>
+            {
+                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
+            });
 
             return services;
         }
