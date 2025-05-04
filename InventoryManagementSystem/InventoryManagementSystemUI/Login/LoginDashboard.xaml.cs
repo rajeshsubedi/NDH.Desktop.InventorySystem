@@ -11,6 +11,9 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using InventoryAppDomainLayer.Exceptions;
+using InventoryAppDomainLayer.Wrappers.DTOs.AuthenticationDTO;
+using InventoryAppServicesLayer.ServiceInterfaces;
 using InventoryManagementSystemUI.Dashboard;
 
 namespace InventoryManagementSystemUI.Login
@@ -20,20 +23,26 @@ namespace InventoryManagementSystemUI.Login
     /// </summary>
     public partial class LoginDashboard : Window
     {
-        public LoginDashboard()
+        private readonly IUserAuthenticationService _authService;
+        public LoginDashboard(IUserAuthenticationService authService)
         {
             InitializeComponent();
+            _authService = authService;
         }
 
-        private void Login_Click(object sender, RoutedEventArgs e)
+        private async void Login_Click(object sender, RoutedEventArgs e)
         {
             string username = UsernameBox.Text.Trim();
             string password = PasswordBox.Password.Trim();
-
-
-            // Simulate login check (replace with real DB/service logic)
-            if (username == "admin" && password == "1234")
+            var loginRequest = new LoginRequestDTO
             {
+                UserEmail = username,
+                Password = password
+            };
+
+            try
+            {
+                var response = await _authService.AuthenticateLogin(loginRequest);
                 MessageBox.Show("Login successful!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
 
                 // Open next window and close login
@@ -41,9 +50,13 @@ namespace InventoryManagementSystemUI.Login
                 dashboard.Show();
                 this.Close();
             }
-            else
+            catch (UserUnauthenticatedException)
             {
-                MessageBox.Show("Invalid credentials.", "Login Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Wrong email or password.", "Login Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("An unexpected error occurred: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }
