@@ -1,0 +1,24 @@
+﻿<Window x:Class="InventoryManagementSystem.Views.LoginView"
+           xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Login" Height="250" Width="400" WindowStartupLocation="CenterScreen">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Row="0" Grid.Column="0" Margin="0,5" VerticalAlignment="Center">Username:</TextBlock>
+        <TextBox Grid.Row="0" Grid.Column="1" Margin="5" x:Name="UsernameBox"/>
+
+        <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,5" VerticalAlignment="Center">Password:</TextBlock>
+        <PasswordBox Grid.Row="1" Grid.Column="1" Margin="5" x:Name="PasswordBox"/>
+
+        <Button Grid.Row="2" Grid.ColumnSpan="2" Margin="0,20,0,0" Content="Login" Click="Login_Click" HorizontalAlignment="Center"/>
+    </Grid>
+</Window>
