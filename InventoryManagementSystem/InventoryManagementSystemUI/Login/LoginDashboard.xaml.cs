@@ -14,7 +14,7 @@ using System.Windows.Shapes;
 using InventoryAppDomainLayer.Exceptions;
 using InventoryAppDomainLayer.Wrappers.DTOs.AuthenticationDTO;
 using InventoryAppServicesLayer.ServiceInterfaces;
-using InventoryManagementSystemUI.Dashboard;
+using InventoryManagementSystemUI.HomeDashboard;
 
 namespace InventoryManagementSystemUI.Login
 {
@@ -46,7 +46,7 @@ namespace InventoryManagementSystemUI.Login
                 MessageBox.Show("Login successful!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
 
                 // Open next window and close login
-                var dashboard = new DashboardWindow();
+                var dashboard = new HomeDashboardWindow();
                 dashboard.Show();
                 this.Close();
             }
