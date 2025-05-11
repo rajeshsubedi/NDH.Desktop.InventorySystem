@@ -10,6 +10,8 @@ using InventoryAppDataAccessLayer.Repositories.RepoInterfaces;
 using InventoryAppServicesLayer.AuthorizationFilter;
 using InventoryAppServicesLayer.ServiceImplementations;
 using InventoryAppServicesLayer.ServiceInterfaces;
+using InventoryManagementSystemUI.FeatureDashboard;
+using InventoryManagementSystemUI.HomeDashboard;
 using InventoryManagementSystemUI.Login;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -22,7 +24,11 @@ namespace InventoryManagementSystemUI
         public static IServiceCollection RegisterServices(this IServiceCollection services)
         {
             services.AddScoped<IUserAuthenticationRepo, UserAuthenticationRepo>();
+            services.AddScoped<IHomeDashboardRepo, HomeDashboardRepo>();
+
             services.AddScoped<IUserAuthenticationService, UserAuthenticationService>();
+            services.AddScoped<IHomeDashboardService, HomeDashboardService>();
+
             services.AddScoped<IEmailService, EmailService>();
             services.AddSingleton<ILoggerConfigurator, LoggerConfigurator>();
             // Singleton if needed
@@ -30,6 +36,10 @@ namespace InventoryManagementSystemUI
 
             // Register the LoginDashboard window
             services.AddSingleton<LoginDashboard>();
+            services.AddSingleton<HomeDashboardWindow>();
+            services.AddSingleton<AddNewItemDashboard>();
+
+
 
             // Add db configuration 
             var configuration = new ConfigurationBuilder()

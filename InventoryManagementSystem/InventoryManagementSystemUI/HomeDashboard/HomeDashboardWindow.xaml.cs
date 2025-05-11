@@ -11,60 +11,84 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using AutoMapper.Features;
+using InventoryAppServicesLayer.ServiceInterfaces;
+using InventoryManagementSystemUI.FeatureDashboard;
 
 namespace InventoryManagementSystemUI.HomeDashboard
 {
     public partial class HomeDashboardWindow : Window
     {
-            public HomeDashboardWindow()
+        private Button _activeButton; // ← Add this
+        private readonly IHomeDashboardService _homeDashboardService;
+
+      
+        public HomeDashboardWindow(IHomeDashboardService homeDashboardService)
+        {
+            InitializeComponent();
+            GetFeatureCollection();
+        }
+
+        // Event handler for button clicks in the sidebar
+        private void FeatureButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_activeButton != null)
             {
-                InitializeComponent();
+                _activeButton.Style = (Style)FindResource("NavButtonStyle");
             }
 
-            private void Dashboard_Click(object sender, RoutedEventArgs e)
+            var clickedButton = sender as Button;
+            if (clickedButton != null)
             {
-                MessageBox.Show("Dashboard clicked");
-            }
+                clickedButton.Style = (Style)FindResource("ActiveSidebarButtonStyle");
+                _activeButton = clickedButton;
 
-            private void Inventory_Click(object sender, RoutedEventArgs e)
-            {
-                MessageBox.Show("Inventory clicked");
+                var feature = clickedButton.DataContext as Feature;
+                if (feature != null)
+                {
+                    switch (feature.FeatureTitle)
+                    {
+                        case "Add New Item":
+                            FeatureDetailsContent.Content = new AddNewItemDashboard();
+                            break;
+                        default:
+                            FeatureDetailsContent.Content = new TextBlock
+                            {
+                                Text = $"Loaded: {feature.FeatureTitle}",
+                                FontSize = 20,
+                                Margin = new Thickness(20)
+                            };
+                            break;
+                    }
+                }
             }
+        }
 
-            private void Categories_Click(object sender, RoutedEventArgs e)
-            {
-                MessageBox.Show("Categories clicked");
-            }
 
-            private void Suppliers_Click(object sender, RoutedEventArgs e)
-            {
-                MessageBox.Show("Suppliers clicked");
-            }
+        public void GetFeatureCollection()
+        {
+            FeatureItemsControl.ItemsSource = new List<Feature>
+                {
+                    new Feature { FeatureTitle = "Dashboard", FeatureDetails = "Overview of inventory statistics and KPIs." },
+                    new Feature { FeatureTitle = "Add New Item", FeatureDetails = "Add new inventory items with relevant details." },
+                    new Feature { FeatureTitle = "Stock Management", FeatureDetails = "Track current stock levels and restock alerts." },
+                    new Feature { FeatureTitle = "Sales Tracking", FeatureDetails = "Monitor items sold and manage order history." },
+                    new Feature { FeatureTitle = "Purchase Orders", FeatureDetails = "Manage supplier orders and track delivery status." },
+                    new Feature { FeatureTitle = "Low Stock Alerts", FeatureDetails = "Get notifications for items running low in stock." },
+                    new Feature { FeatureTitle = "Reports", FeatureDetails = "Generate inventory, sales, and audit reports." },
+                    new Feature { FeatureTitle = "Category Management", FeatureDetails = "Organize inventory into categories for better tracking." },
+                    new Feature { FeatureTitle = "User Access Control", FeatureDetails = "Manage user roles and permissions." },
+                    new Feature { FeatureTitle = "Settings", FeatureDetails = "Configure system preferences and business settings." }
+                };
+        }
+    }
 
-            private void Customers_Click(object sender, RoutedEventArgs e)
-            {
-                MessageBox.Show("Customers clicked");
-            }
+    
 
-            private void Sales_Click(object sender, RoutedEventArgs e)
-            {
-                MessageBox.Show("Sales clicked");
-            }
-
-            private void Reports_Click(object sender, RoutedEventArgs e)
-            {
-                MessageBox.Show("Reports clicked");
-            }
-
-            private void Settings_Click(object sender, RoutedEventArgs e)
-            {
-                MessageBox.Show("Settings clicked");
-            }
-
-            private void Logout_Click(object sender, RoutedEventArgs e)
-            {
-                this.Close(); // or navigate to login
-            }
-        
+    // Simple class for binding feature data
+    public class Feature
+    {
+        public string FeatureTitle { get; set; }
+        public string FeatureDetails { get; set; }
     }
 }

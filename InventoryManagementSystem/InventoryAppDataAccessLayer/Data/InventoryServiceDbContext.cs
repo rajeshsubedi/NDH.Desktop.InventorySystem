@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using InventoryAppDomainLayer.DataModels.AuthenticationModels;
+using InventoryAppDomainLayer.DataModels.HomeDashboardModels;
 using Microsoft.EntityFrameworkCore;
 
 namespace InventoryAppDataAccessLayer.Data
@@ -11,7 +12,8 @@ namespace InventoryAppDataAccessLayer.Data
     public class InventoryServiceDbContext : DbContext
     {
         public DbSet<UserRegistrationDetails> UserRegistration { get; set; }
-      
+        public DbSet<DashboardFeaturePanel> FeaturePanels { get; set; }
+
         private Guid id;
         public InventoryServiceDbContext(DbContextOptions<InventoryServiceDbContext> options) : base(options)
         {
@@ -63,8 +65,15 @@ namespace InventoryAppDataAccessLayer.Data
                 entity.Property(e => e.CreatedAt).IsRequired().HasColumnType("datetime2");
             });
 
+            modelBuilder.Entity<DashboardFeaturePanel>(entity =>
+            {
+                entity.HasKey(e => e.FeatureId);
 
-   
+                entity.Property(e => e.FeatureName).IsRequired().HasMaxLength(256).HasColumnType("nvarchar(256)");
+
+                entity.Property(e => e.FeatureViewKey).IsRequired().HasMaxLength(256).HasColumnType("nvarchar(256)");
+            });
+
 
 
             base.OnModelCreating(modelBuilder);

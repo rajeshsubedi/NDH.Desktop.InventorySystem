@@ -1,0 +1,108 @@
+﻿<UserControl x:Class="InventoryManagementSystemUI.FeatureDashboard.AddNewItemDashboard"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:InventoryManagementSystemUI.FeatureDashboard" xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid Background="White">
+        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="250"/>
+            <!-- Left column for categories -->
+            <ColumnDefinition Width="*"/>
+            <!-- Right column for item input -->
+        </Grid.ColumnDefinitions>
+        
+        <Grid.RowDefinitions>
+            <RowDefinition Height="800"/>
+            <RowDefinition Height="500"/>
+        </Grid.RowDefinitions>
+        
+       
+        <!-- Left side: Category TreeView and buttons -->
+        <StackPanel Grid.Column="0" Margin="20,20,10,20">
+            
+            <TextBlock Text="Categories" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+
+            <!-- Search Box -->
+            <!--<TextBox x:Name="CategorySearchBox"
+             Width="200"
+             Margin="-20,0,0,10"
+             Height="25"
+             ToolTip="Type to search categories"
+             TextChanged="CategorySearchBox_TextChanged"/>-->
+
+            <xctk:WatermarkTextBox x:Name="CategorySearchBox"
+                               Width="200"
+                               Height="25"
+                               Margin="-20,0,0,10"
+                               ToolTip="Type to search categories"
+                               Watermark="Search categories here"
+                               TextChanged="CategorySearchBox_TextChanged"/>
+
+            <TreeView x:Name="CategoryTreeView" ItemsSource="{Binding FilteredCategories}" Height="400" SelectedItemChanged="CategoryTreeView_SelectedItemChanged">
+                <TreeView.ItemTemplate>
+                    <HierarchicalDataTemplate ItemsSource="{Binding SubCategories}">
+                        <TextBlock Text="{Binding DisplayName}" />
+                    </HierarchicalDataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
+            <Button Content="Add Parent Category" Click="AddParentCategory_Click" Margin="0,10,0,10" Background="LightBlue"/>
+            <Button x:Name="AddSubCategoryButton" Content="Add Subcategory" Click="AddSubCategory_Click" Margin="0,0,0,0" Background="LightGreen"/>
+        </StackPanel>
+
+        <!-- Right side: Item form -->
+        <StackPanel Grid.Column="1" Margin="10,20,20,20">
+            <TextBlock Text="Add New Item" FontSize="24" FontWeight="Bold" Margin="20,0,0,20"/>
+
+            <TextBlock x:Name="SelectedCategoryTextBlock"
+                           Text="Selected Category: None"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           Foreground="DarkSlateGray"
+                           Margin="20,0,0,10"/>
+            
+            <!-- Item Name -->
+            <Grid Margin="20,0,20,10">
+                <TextBox x:Name="ItemNameTextBox" Margin="0,0,0,10" VerticalContentAlignment="Center"/>
+                <TextBlock x:Name="ItemNamePlaceholder" Text="Item Name" Foreground="Gray" VerticalAlignment="Center"
+                           HorizontalAlignment="Left" Margin="5,0,0,10" IsHitTestVisible="False"/>
+            </Grid>
+
+            <!-- Description -->
+            <Grid Margin="20,0,20,10">
+                <TextBox x:Name="ItemDescriptionTextBox" Margin="0,0,0,10" VerticalContentAlignment="Center"/>
+                <TextBlock x:Name="ItemDescriptionPlaceholder" Text="Item Description" Foreground="Gray" VerticalAlignment="Center"
+                           HorizontalAlignment="Left" Margin="5,0,0,10" IsHitTestVisible="False"/>
+            </Grid>
+
+            <!-- Quantity -->
+            <Grid Margin="20,0,20,10">
+                <TextBox x:Name="QuantityTextBox" Margin="0,0,0,10" VerticalContentAlignment="Center"/>
+                <TextBlock x:Name="QuantityPlaceholder" Text="Quantity" Foreground="Gray" VerticalAlignment="Center"
+                           HorizontalAlignment="Left" Margin="5,0,0,10" IsHitTestVisible="False"/>
+            </Grid>
+
+            <!-- Price -->
+            <Grid Margin="20,0,20,10">
+                <TextBox x:Name="PriceTextBox" Margin="0,0,0,10" VerticalContentAlignment="Center"/>
+                <TextBlock x:Name="PricePlaceholder" Text="Price" Foreground="Gray" VerticalAlignment="Center"
+                           HorizontalAlignment="Left" Margin="5,0,0,10" IsHitTestVisible="False"/>
+            </Grid>
+
+     
+
+            <!-- Add Item Button -->
+            <Button x:Name="AddItemButton"
+                    Content="Add Item"
+                    Width="120"
+                    Height="40"
+                    Background="#00B0FF"
+                    Foreground="White"
+                    Click="AddItem_Click"
+                    IsEnabled="False"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

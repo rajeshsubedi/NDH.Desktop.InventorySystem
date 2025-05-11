@@ -11,8 +11,12 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using InventoryAppDataAccessLayer.Data;
+using InventoryAppDataAccessLayer.Repositories.RepoImplementations;
+using InventoryAppDataAccessLayer.Repositories.RepoInterfaces;
 using InventoryAppDomainLayer.Exceptions;
 using InventoryAppDomainLayer.Wrappers.DTOs.AuthenticationDTO;
+using InventoryAppServicesLayer.ServiceImplementations;
 using InventoryAppServicesLayer.ServiceInterfaces;
 using InventoryManagementSystemUI.HomeDashboard;
 
@@ -24,6 +28,8 @@ namespace InventoryManagementSystemUI.Login
     public partial class LoginDashboard : Window
     {
         private readonly IUserAuthenticationService _authService;
+        private readonly IHomeDashboardService _homeDashboardService;
+
         public LoginDashboard(IUserAuthenticationService authService)
         {
             InitializeComponent();
@@ -46,7 +52,7 @@ namespace InventoryManagementSystemUI.Login
                 MessageBox.Show("Login successful!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
 
                 // Open next window and close login
-                var dashboard = new HomeDashboardWindow();
+                var dashboard = new HomeDashboardWindow(_homeDashboardService);
                 dashboard.Show();
                 this.Close();
             }
