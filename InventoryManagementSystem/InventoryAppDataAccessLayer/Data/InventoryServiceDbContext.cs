@@ -13,6 +13,8 @@ namespace InventoryAppDataAccessLayer.Data
     {
         public DbSet<UserRegistrationDetails> UserRegistration { get; set; }
         public DbSet<DashboardFeaturePanel> FeaturePanels { get; set; }
+        public DbSet<Category> Categories { get; set; }
+
 
         private Guid id;
         public InventoryServiceDbContext(DbContextOptions<InventoryServiceDbContext> options) : base(options)
@@ -72,6 +74,48 @@ namespace InventoryAppDataAccessLayer.Data
                 entity.Property(e => e.FeatureName).IsRequired().HasMaxLength(256).HasColumnType("nvarchar(256)");
 
                 entity.Property(e => e.FeatureViewKey).IsRequired().HasMaxLength(256).HasColumnType("nvarchar(256)");
+            });
+
+            modelBuilder.Entity<Category>(entity =>
+            {
+                entity.ToTable("Categories"); // Table name
+
+                // Primary Key
+                entity.HasKey(e => e.CategoryId);
+
+                // Column Configuration
+                entity.Property(e => e.CategoryId)
+                      .IsRequired()
+                      .HasColumnType("int")
+                      .ValueGeneratedOnAdd(); // Auto-increment
+
+                entity.Property(e => e.Name)
+                      .IsRequired()
+                      .HasMaxLength(100)
+                      .HasColumnType("nvarchar(100)");
+
+                entity.Property(e => e.Abbreviation)
+                      .HasMaxLength(20)
+                      .HasColumnType("nvarchar(20)");
+
+                entity.Property(e => e.Level)
+                      .IsRequired()
+                      .HasColumnType("int");
+
+                entity.Property(e => e.ParentCategoryId)
+                      .HasColumnType("int")
+                      .IsRequired(false); // Nullable for parent category
+
+                entity.Property(e => e.CreatedAt)
+                      .HasColumnType("datetime")
+                      .HasDefaultValueSql("GETDATE()");
+
+                // Self-referencing foreign key relationship
+                entity.HasOne(e => e.Parent)
+                      .WithMany(e => e.SubCategories)
+                      .HasForeignKey(e => e.ParentCategoryId)
+                      .OnDelete(DeleteBehavior.Restrict) // Or Cascade, depending on the behavior you need
+                      .HasConstraintName("FK_Categories_Parent"); // Foreign key constraint name
             });
 
 

@@ -12,6 +12,12 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using InventoryAppDataAccessLayer.Data;
+using InventoryAppDataAccessLayer.Repositories.RepoInterfaces;
+using InventoryAppDomainLayer.DataModels.HomeDashboardModels;
+using InventoryAppServicesLayer.ServiceImplementations;
+using InventoryAppServicesLayer.ServiceInterfaces;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace InventoryManagementSystemUI.FeatureDashboard
 {
@@ -23,9 +29,11 @@ namespace InventoryManagementSystemUI.FeatureDashboard
         // List to hold categories
         private List<Category> _categories = new List<Category>();
         private bool _isRefreshingTreeView = false;
+        private readonly IAddItemCategoryService _categoryService;
         public AddNewItemDashboard()
         {
             InitializeComponent();
+            _categoryService = App.ServiceProvider.GetRequiredService<IAddItemCategoryService>();
 
             // Hook events for placeholders
             HookTextBoxEvents(ItemNameTextBox, ItemNamePlaceholder);
@@ -34,7 +42,7 @@ namespace InventoryManagementSystemUI.FeatureDashboard
             HookTextBoxEvents(PriceTextBox, PricePlaceholder);
 
             // Load categories into TreeView
-            LoadCategories();
+            _ = LoadCategoriesAsync();
         }
 
         private void HookTextBoxEvents(TextBox textBox, TextBlock placeholder)
@@ -51,54 +59,41 @@ namespace InventoryManagementSystemUI.FeatureDashboard
                 : Visibility.Collapsed;
         }
 
-        private void ToggleTreeViewPlaceholder()
+        private async Task LoadCategoriesAsync()
         {
-            // Handle visibility of placeholder for TreeView (if necessary)
-            // Example: Show placeholder if no category is selected
-            var selectedCategory = CategoryTreeView.SelectedItem as Category;
-            if (selectedCategory == null)
+            try
             {
-                MessageBox.Show("Please select a category from the TreeView.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                CategoryTreeView.Items.Clear();
+
+                // Fetch all categories from the service
+                var allCategories = await _categoryService.GetAllCategoriesAsync();
+
+                // Filter root-level categories (no parent)
+                _categories = allCategories
+                    .Where(c => c.ParentCategoryId == null)
+                    .ToList();
+
+                CategoryTreeView.ItemsSource = _categories;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to load categories: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        private void LoadCategories()
-        {
-            // Load categories dynamically (mock example)
-            _categories = new List<Category>
-        {
-            new Category { Name = "Electronics", SubCategories = new List<Category> { new Category { Name = "Mobile" }, new Category { Name = "Laptop" } } },
-            new Category { Name = "Furniture", SubCategories = new List<Category> { new Category { Name = "Sofa" }, new Category { Name = "Table" } } },
-            new Category { Name = "Stationery" }
-        };
 
-            CategoryTreeView.ItemsSource = _categories;
-        }
-
-        private void AddParentCategory_Click(object sender, RoutedEventArgs e)
+        private async void AddParentCategory_Click(object sender, RoutedEventArgs e)
         {
-            var categoryName = PromptForName("Enter parent category name:");
-            if (!string.IsNullOrEmpty(categoryName))
+            var name = PromptForName("Enter parent category name:");
+            if (!string.IsNullOrEmpty(name))
             {
-                var index = _categories.Count + 1;
-                var (abbr, id) = GenerateCategoryIdentifier(1, index);
-
-                var newCategory = new Category
-                {
-                    Id = id,
-                    Name = categoryName,
-                    Abbreviation = abbr,
-                    Level = 1
-                };
-
-                _categories.Add(newCategory);
-
+                await _categoryService.AddParentCategoryAsync(name);
                 RefreshTreeView();
             }
         }
 
 
-        private void AddSubCategory_Click(object sender, RoutedEventArgs e)
+        private async void AddSubCategory_Click(object sender, RoutedEventArgs e)
         {
             if (CategoryTreeView.SelectedItem is Category selectedCategory)
             {
@@ -109,23 +104,21 @@ namespace InventoryManagementSystemUI.FeatureDashboard
                 }
 
                 var subCategoryName = PromptForName($"Enter name for subcategory under '{selectedCategory.Name}':");
-                if (!string.IsNullOrEmpty(subCategoryName))
+                if (!string.IsNullOrWhiteSpace(subCategoryName))
                 {
-                    var level = selectedCategory.Level + 1;
-                    var index = selectedCategory.SubCategories.Count + 1;
-                    var (abbr, id) = GenerateCategoryIdentifier(level, index);
-
-                    var newSubCategory = new Category
+                    try
                     {
-                        Id = id,
-                        Name = subCategoryName,
-                        Abbreviation = abbr,
-                        Level = level,
-                        Parent = selectedCategory
-                    };
+                        // Save subcategory to the database
+                        await _categoryService.AddSubCategoryAsync(selectedCategory.CategoryId, subCategoryName);
 
-                    selectedCategory.SubCategories.Add(newSubCategory);
-                    RefreshTreeView();
+                        // Option 1: (Recommended) Reload the entire category tree
+                        await LoadCategoriesAsync();
+                        RefreshTreeView();
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Failed to add subcategory: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
                 }
             }
             else
@@ -133,6 +126,7 @@ namespace InventoryManagementSystemUI.FeatureDashboard
                 MessageBox.Show("Please select a category to add a subcategory.", "Validation", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
+
 
         private string PromptForName(string message)
         {
@@ -172,55 +166,39 @@ namespace InventoryManagementSystemUI.FeatureDashboard
             ItemDescriptionTextBox.Text = "";
             QuantityTextBox.Text = "";
             PriceTextBox.Text = "";
-            //CategoryTreeView.SelectedItem = null;
+
+            // Optionally reset category
+            // CategoryTreeView.SelectedItem = null;
+            // SelectedCategoryTextBlock.Text = "Selected Category: None";
 
             // Reset placeholders
             ToggleTextBoxPlaceholder(ItemNameTextBox, ItemNamePlaceholder);
             ToggleTextBoxPlaceholder(ItemDescriptionTextBox, ItemDescriptionPlaceholder);
             ToggleTextBoxPlaceholder(QuantityTextBox, QuantityPlaceholder);
             ToggleTextBoxPlaceholder(PriceTextBox, PricePlaceholder);
+
+            // Re-validate form state (disable Add button again)
+            ValidateFormInputs();
         }
 
 
-        private void CategoryTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        private void InputField_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (_isRefreshingTreeView)
-                return;
-
-            var selectedCategory = CategoryTreeView.SelectedItem as Category;
-            if (selectedCategory != null)
-            {
-                SelectedCategoryTextBlock.Text = $"Selected Category: {selectedCategory.DisplayName}";
-
-                // Disable Add button if level is 5 or more
-                AddSubCategoryButton.IsEnabled = selectedCategory.Level < 5;
-            }
-            else
-            {
-                SelectedCategoryTextBlock.Text = "Selected Category: None";
-                AddSubCategoryButton.IsEnabled = false;
-
-                // Show placeholder only when no category is selected
-                ToggleTreeViewPlaceholder();
-            }
+            ValidateFormInputs();
         }
-
-
-        private (string Abbreviation, string Id) GenerateCategoryIdentifier(int level, int index)
+        private void ValidateFormInputs()
         {
-            string prefix = level switch
-            {
-                1 => "PCG", // Parent Category Group
-                2 => "SCG", // Sub Category Group
-                3 => "CAT", // Category
-                4 => "CHC", // Child Category
-                5 => "SCC", // Sub Child Category
-                _ => "LVL" + level
-            };
+            bool isValid =
+                !string.IsNullOrWhiteSpace(ItemNameTextBox.Text) &&
+                !string.IsNullOrWhiteSpace(QuantityTextBox.Text) &&
+                int.TryParse(QuantityTextBox.Text, out int quantity) && quantity > 0 &&
+                !string.IsNullOrWhiteSpace(PriceTextBox.Text) &&
+                decimal.TryParse(PriceTextBox.Text, out decimal price) && price >= 0 &&
+                CategoryTreeView.SelectedItem is Category;
 
-            string id = $"{prefix}{index.ToString("D3")}";
-            return (prefix, id);
+            AddItemButton.IsEnabled = isValid;
         }
+
 
         private void RefreshTreeView()
         {
@@ -283,26 +261,24 @@ namespace InventoryManagementSystemUI.FeatureDashboard
 
             return new Category
             {
-                Id = category.Id,
+                CategoryId = category.CategoryId,
                 Name = category.Name,
                 Abbreviation = category.Abbreviation,
                 Level = category.Level,
+                ParentCategoryId = category.ParentCategoryId,
                 Parent = category.Parent,
                 SubCategories = matchingSubcategories
             };
         }
+
+        private void EditCategory_Click(object sender, RoutedEventArgs e)
+        {
+        
+        }
+
+        private void DeleteCategory_Click(object sender, RoutedEventArgs e)
+        {
+          
+        }
     }
-
-    public class Category
-    {
-        public string Id { get; set; } // e.g., PCG001, SCG002
-        public string Name { get; set; }
-        public string Abbreviation { get; set; } // e.g., PCG, SCG
-        public int Level { get; set; } // 1 to 5
-        public Category Parent { get; set; }
-        public List<Category> SubCategories { get; set; } = new List<Category>();
-        public string DisplayName => $"{Name} ({Abbreviation})";
-    }
-
-
 }
