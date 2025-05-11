@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,24 +28,29 @@ namespace InventoryManagementSystemUI.FeatureDashboard
     public partial class AddNewItemDashboard : UserControl
     {
         // List to hold categories
-        private List<Category> _categories = new List<Category>();
+        private readonly ObservableCollection<Category> _categories = new();
+        public ObservableCollection<Category> FilteredCategories => _categories;
+
+        // The property bound to the selected category in the TreeView
+        private Category SelectedCategory;
         private bool _isRefreshingTreeView = false;
         private readonly IAddItemCategoryService _categoryService;
+        private bool _isLoadingCategories = false;
         public AddNewItemDashboard()
         {
             InitializeComponent();
             _categoryService = App.ServiceProvider.GetRequiredService<IAddItemCategoryService>();
 
-            // Hook events for placeholders
+            this.DataContext = this; // important for binding to work!
+
             HookTextBoxEvents(ItemNameTextBox, ItemNamePlaceholder);
             HookTextBoxEvents(ItemDescriptionTextBox, ItemDescriptionPlaceholder);
             HookTextBoxEvents(QuantityTextBox, QuantityPlaceholder);
             HookTextBoxEvents(PriceTextBox, PricePlaceholder);
 
-            // Load categories into TreeView
             _ = LoadCategoriesAsync();
         }
-
+      
         private void HookTextBoxEvents(TextBox textBox, TextBlock placeholder)
         {
             textBox.GotFocus += (s, e) => ToggleTextBoxPlaceholder(textBox, placeholder);
@@ -61,23 +67,12 @@ namespace InventoryManagementSystemUI.FeatureDashboard
 
         private async Task LoadCategoriesAsync()
         {
-            try
+            // Example: Loading categories into FilteredCategories
+            var allCategories = await _categoryService.GetAllCategoriesAsync();
+            FilteredCategories.Clear();
+            foreach (var category in allCategories)
             {
-                CategoryTreeView.Items.Clear();
-
-                // Fetch all categories from the service
-                var allCategories = await _categoryService.GetAllCategoriesAsync();
-
-                // Filter root-level categories (no parent)
-                _categories = allCategories
-                    .Where(c => c.ParentCategoryId == null)
-                    .ToList();
-
-                CategoryTreeView.ItemsSource = _categories;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Failed to load categories: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                FilteredCategories.Add(category);
             }
         }
 
@@ -113,7 +108,7 @@ namespace InventoryManagementSystemUI.FeatureDashboard
 
                         // Option 1: (Recommended) Reload the entire category tree
                         await LoadCategoriesAsync();
-                        RefreshTreeView();
+                        //RefreshTreeView();
                     }
                     catch (Exception ex)
                     {
@@ -167,10 +162,6 @@ namespace InventoryManagementSystemUI.FeatureDashboard
             QuantityTextBox.Text = "";
             PriceTextBox.Text = "";
 
-            // Optionally reset category
-            // CategoryTreeView.SelectedItem = null;
-            // SelectedCategoryTextBlock.Text = "Selected Category: None";
-
             // Reset placeholders
             ToggleTextBoxPlaceholder(ItemNameTextBox, ItemNamePlaceholder);
             ToggleTextBoxPlaceholder(ItemDescriptionTextBox, ItemDescriptionPlaceholder);
@@ -200,13 +191,19 @@ namespace InventoryManagementSystemUI.FeatureDashboard
         }
 
 
-        private void RefreshTreeView()
+        private async void RefreshTreeView()
         {
             _isRefreshingTreeView = true;
 
-            // Clear and reset ItemsSource
-            CategoryTreeView.ItemsSource = null;
-            CategoryTreeView.ItemsSource = _categories;
+            try
+            {
+                // Reuse LoadCategoriesAsync to handle the data refresh and binding
+                await LoadCategoriesAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to refresh categories: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
 
             _isRefreshingTreeView = false;
         }
@@ -270,7 +267,17 @@ namespace InventoryManagementSystemUI.FeatureDashboard
                 SubCategories = matchingSubcategories
             };
         }
+        private void CategoryTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
 
+            // Get the selected category from TreeView
+            if (e.NewValue is Category selectedCategory)
+            {
+                // Update the TextBlock with the selected category's ID and Name
+                SelectedCategory = selectedCategory;
+                SelectedCategoryTextBlock.Text = $"Selected Category: {selectedCategory.DisplayName} (Category ID: {selectedCategory.CategoryId})";
+            }
+        }
         private void EditCategory_Click(object sender, RoutedEventArgs e)
         {
         

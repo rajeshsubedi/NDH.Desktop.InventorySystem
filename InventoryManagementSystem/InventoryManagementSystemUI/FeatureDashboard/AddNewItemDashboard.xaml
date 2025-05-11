@@ -51,24 +51,25 @@
                                Watermark="Search categories here"
                                TextChanged="CategorySearchBox_TextChanged"/>
 
-            <TreeView x:Name="CategoryTreeView"
-          ItemsSource="{Binding FilteredCategories}"
-                      Margin="10">
-                <!-- Adjust this value as needed --> >
-                <TreeView.ItemTemplate>
-                    <HierarchicalDataTemplate ItemsSource="{Binding SubCategories}">
-                        <TextBlock Text="{Binding DisplayName}" FontSize="15">
-                            <TextBlock.ContextMenu>
-                                <ContextMenu>
-                                    <MenuItem Header="Add Subcategory" Click="AddSubCategory_Click" IsEnabled="{Binding IsAddSubCategoryEnabled}"/>
-                                    <MenuItem Header="Edit Category" Click="EditCategory_Click"/>
-                                    <MenuItem Header="Delete Category" Click="DeleteCategory_Click"/>
-                                </ContextMenu>
-                            </TextBlock.ContextMenu>
-                        </TextBlock>
-                    </HierarchicalDataTemplate>
-                </TreeView.ItemTemplate>
+            <TreeView x:Name="CategoryTreeView" 
+                  ItemsSource="{Binding FilteredCategories}" 
+                 SelectedItemChanged="CategoryTreeView_SelectedItemChanged"
+                  Margin="10">
+                        <TreeView.ItemTemplate>
+                            <HierarchicalDataTemplate ItemsSource="{Binding SubCategories}">
+                                <TextBlock Text="{Binding DisplayName}" FontSize="15">
+                                    <TextBlock.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="Add Subcategory" Click="AddSubCategory_Click" IsEnabled="{Binding IsAddSubCategoryEnabled}"/>
+                                            <MenuItem Header="Edit Category" Click="EditCategory_Click"/>
+                                            <MenuItem Header="Delete Category" Click="DeleteCategory_Click"/>
+                                        </ContextMenu>
+                                    </TextBlock.ContextMenu>
+                                </TextBlock>
+                            </HierarchicalDataTemplate>
+                        </TreeView.ItemTemplate>
             </TreeView>
+
 
         </StackPanel>
 
@@ -77,11 +78,11 @@
             <TextBlock Text="Add New Item" FontSize="24" FontWeight="Bold" Margin="20,0,0,20"/>
 
             <TextBlock x:Name="SelectedCategoryTextBlock"
-                           Text="Selected Category: None"
-                           FontSize="14"
-                           FontWeight="SemiBold"
-                           Foreground="DarkSlateGray"
-                           Margin="20,0,0,10"/>
+                   Text="Selected Category: None"
+                   FontSize="16"
+                   FontWeight="Bold"
+                   Foreground="DarkSlateGray"
+                   Margin="20,10,0,30"/>
 
             <!-- Item Name -->
             <Grid Margin="20,0,20,10">
