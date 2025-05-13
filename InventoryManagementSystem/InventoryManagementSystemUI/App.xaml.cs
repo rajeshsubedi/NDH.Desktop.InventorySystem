@@ -1,6 +1,7 @@
 ﻿using System.Configuration;
 using System.Data;
 using System.Windows;
+using InventoryManagementSystemUI.HomeDashboard;
 using InventoryManagementSystemUI.Login;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,7 +18,9 @@ namespace InventoryManagementSystemUI
         {
             RegisterAllServices();
             base.OnStartup(e);
-            var loginWindow = ServiceProvider.GetRequiredService<LoginDashboard>();
+            //var loginWindow = ServiceProvider.GetRequiredService<LoginDashboard>();
+            var loginWindow = ServiceProvider.GetRequiredService<HomeDashboardWindow>();
+
             loginWindow.Show();
         }
 
